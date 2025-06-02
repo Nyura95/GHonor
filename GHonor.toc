@@ -1,0 +1,9 @@
+## Interface: 11500
+## Title: GHonor
+## Notes: Suivi de l'honneur en champ de bataille
+## Author: Votre nom
+## Version: 1.0
+## SavedVariables: GHonorDB
+## DefaultState: enabled
+
+GHonor.lua 
