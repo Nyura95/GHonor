@@ -9,6 +9,9 @@ local isInBattleground = false
 local sessionStartHonor = 0
 local currentBGHonor = 0
 
+-- Raccourci pour la fonction de traduction
+local _ = GHonor_
+
 -- Configuration par défaut
 local defaults = {
     point = "CENTER",
@@ -180,13 +183,13 @@ function GHonor:CreateSlashCommands()
         if msg == "show" then
             GHonorDB.showOutsideBG = true
             HonorFrame:Show()
-            print("|cFF00FF00GHonor:|r Fenêtre affichée")
+            print("|cFF00FF00GHonor:|r " .. "Fenêtre affichée")
         elseif msg == "hide" then
             GHonorDB.showOutsideBG = false
             if not isInBattleground then
                 HonorFrame:Hide()
             end
-            print("|cFF00FF00GHonor:|r Fenêtre masquée hors champ de bataille")
+            print("|cFF00FF00GHonor:|r " .. "Fenêtre masquée hors champ de bataille")
         elseif msg == "reset" then
             GHonorDB.point = defaults.point
             GHonorDB.relativePoint = defaults.relativePoint
@@ -194,12 +197,12 @@ function GHonor:CreateSlashCommands()
             GHonorDB.yOfs = defaults.yOfs
             HonorFrame:ClearAllPoints()
             HonorFrame:SetPoint(GHonorDB.point, UIParent, GHonorDB.relativePoint, GHonorDB.xOfs, GHonorDB.yOfs)
-            print("|cFF00FF00GHonor:|r Position réinitialisée")
+            print("|cFF00FF00GHonor:|r " .. "Position réinitialisée")
         else
-            print("|cFF00FF00GHonor - Commandes disponibles:|r")
-            print("  /ghonor show - Affiche la fenêtre")
-            print("  /ghonor hide - Masque la fenêtre hors champ de bataille")
-            print("  /ghonor reset - Réinitialise la position de la fenêtre")
+            print("|cFF00FF00GHonor - " .. "Commandes disponibles" .. ":|r")
+            print("  /ghonor show - " .. "Affiche la fenêtre")
+            print("  /ghonor hide - " .. "Masque la fenêtre hors champ de bataille")
+            print("  /ghonor reset - " .. "Réinitialise la position de la fenêtre")
         end
     end
 end
@@ -242,7 +245,7 @@ function GHonor:ProcessHonorMessage(text)
     if not isInBattleground then return end
     
     -- Analyse du message pour déterminer si c'est un kill ou un objectif
-    if text:find("victoire honorable") then
+    if text:find(":") then
         -- C'est un kill honorable
         local honor = tonumber(text:match("(%d+)"))
         if honor then
