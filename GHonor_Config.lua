@@ -31,7 +31,7 @@ local Config = {
         level = 1,
         minWidth = 130,
         minHeight = 105,
-        canResize = false
+        canResize = true
     },
 
     -- Commandes slash
