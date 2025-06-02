@@ -129,7 +129,6 @@ function GHonor:CreateSlashCommands()
             print(Config.COLORS.ADDON_PREFIX .. _(Config.MESSAGES.AVAILABLE_COMMANDS) .. ":|r")
             print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "show", _("Toggle window visibility")))
             print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "reset", _(Config.MESSAGES.RESET_WINDOW)))
-            print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "debug", _("Toggle debug mode")))
         end
     end
 end
