@@ -107,7 +107,7 @@ function GHonor:CreateMainFrame()
     
     HonorFrame.title = HonorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     HonorFrame.title:SetPoint("CENTER", titleBg, "CENTER", 0, 0)
-    HonorFrame.title:SetText("GHonor")
+    HonorFrame.title:SetText(_("GHonor"))
     HonorFrame.title:SetTextColor(1, 0.82, 0)  -- Couleur dorée
     
     -- Conteneur pour les statistiques
@@ -119,22 +119,22 @@ function GHonor:CreateMainFrame()
     HonorFrame.hkText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     HonorFrame.hkText:SetPoint("TOPLEFT", 0, 0)
     HonorFrame.hkText:SetJustifyH("LEFT")
-    HonorFrame.hkText:SetText("Nombre VH: 0")
+    HonorFrame.hkText:SetText(_("HK Count") .. ": 0")
     
     HonorFrame.honorKillsText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     HonorFrame.honorKillsText:SetPoint("TOPLEFT", HonorFrame.hkText, "BOTTOMLEFT", 0, -4)
     HonorFrame.honorKillsText:SetJustifyH("LEFT")
-    HonorFrame.honorKillsText:SetText("Honneur VH: 0")
+    HonorFrame.honorKillsText:SetText(_("HK Honor") .. ": 0")
     
     HonorFrame.honorObjectivesText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     HonorFrame.honorObjectivesText:SetPoint("TOPLEFT", HonorFrame.honorKillsText, "BOTTOMLEFT", 0, -4)
     HonorFrame.honorObjectivesText:SetJustifyH("LEFT")
-    HonorFrame.honorObjectivesText:SetText("Honneur objectif: 0")
+    HonorFrame.honorObjectivesText:SetText(_("Objective Honor") .. ": 0")
     
     HonorFrame.totalHonorText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     HonorFrame.totalHonorText:SetPoint("TOPLEFT", HonorFrame.honorObjectivesText, "BOTTOMLEFT", 0, -4)
     HonorFrame.totalHonorText:SetJustifyH("LEFT")
-    HonorFrame.totalHonorText:SetText("Total: 0")
+    HonorFrame.totalHonorText:SetText(_("Total") .. ": 0")
     
     -- Bouton de fermeture
     local closeButton = CreateFrame("Button", nil, HonorFrame)
@@ -183,13 +183,13 @@ function GHonor:CreateSlashCommands()
         if msg == "show" then
             GHonorDB.showOutsideBG = true
             HonorFrame:Show()
-            print("|cFF00FF00GHonor:|r " .. "Fenêtre affichée")
+            print("|cFF00FF00GHonor:|r " .. _("Window shown"))
         elseif msg == "hide" then
             GHonorDB.showOutsideBG = false
             if not isInBattleground then
                 HonorFrame:Hide()
             end
-            print("|cFF00FF00GHonor:|r " .. "Fenêtre masquée hors champ de bataille")
+            print("|cFF00FF00GHonor:|r " .. _("Window hidden outside battleground"))
         elseif msg == "reset" then
             GHonorDB.point = defaults.point
             GHonorDB.relativePoint = defaults.relativePoint
@@ -197,12 +197,12 @@ function GHonor:CreateSlashCommands()
             GHonorDB.yOfs = defaults.yOfs
             HonorFrame:ClearAllPoints()
             HonorFrame:SetPoint(GHonorDB.point, UIParent, GHonorDB.relativePoint, GHonorDB.xOfs, GHonorDB.yOfs)
-            print("|cFF00FF00GHonor:|r " .. "Position réinitialisée")
+            print("|cFF00FF00GHonor:|r " .. _("Position reset"))
         else
-            print("|cFF00FF00GHonor - " .. "Commandes disponibles" .. ":|r")
-            print("  /ghonor show - " .. "Affiche la fenêtre")
-            print("  /ghonor hide - " .. "Masque la fenêtre hors champ de bataille")
-            print("  /ghonor reset - " .. "Réinitialise la position de la fenêtre")
+            print("|cFF00FF00GHonor - " .. _("Available commands") .. ":|r")
+            print("  /ghonor show - " .. _("Show window"))
+            print("  /ghonor hide - " .. _("Hide window outside battleground"))
+            print("  /ghonor reset - " .. _("Reset window position"))
         end
     end
 end
@@ -320,10 +320,10 @@ end
 function GHonor:UpdateDisplay()
     if not HonorFrame then return end
     
-    HonorFrame.hkText:SetText(string.format("Nombre VH: %d", honorableKills))
-    HonorFrame.honorKillsText:SetText(string.format("Honneur VH: %d", honorFromKills))
-    HonorFrame.honorObjectivesText:SetText(string.format("Honneur objectif: %d", honorFromObjectives))
-    HonorFrame.totalHonorText:SetText(string.format("Total: %d", honorFromKills + honorFromObjectives))
+    HonorFrame.hkText:SetText(string.format(_("HK Count") .. ": %d", honorableKills))
+    HonorFrame.honorKillsText:SetText(string.format(_("HK Honor") .. ": %d", honorFromKills))
+    HonorFrame.honorObjectivesText:SetText(string.format(_("Objective Honor") .. ": %d", honorFromObjectives))
+    HonorFrame.totalHonorText:SetText(string.format(_("Total") .. ": %d", honorFromKills + honorFromObjectives))
 end
 
 -- Initialisation
