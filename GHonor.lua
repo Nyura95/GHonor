@@ -121,6 +121,7 @@ function GHonor:CreateSlashCommands()
             GHonorDB.yOfs = Config.DEFAULTS.yOfs
             HonorFrame:ClearAllPoints()
             HonorFrame:SetPoint(GHonorDB.point, UIParent, GHonorDB.relativePoint, GHonorDB.xOfs, GHonorDB.yOfs)
+            HonorFrame:RestoreSize()
             print(Config.COLORS.ADDON_PREFIX .. _(Config.MESSAGES.POSITION_RESET))
         elseif msg == "debug" then
             Config.DEBUG.enabled = not Config.DEBUG.enabled

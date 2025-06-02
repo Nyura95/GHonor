@@ -1,23 +1,10 @@
 local addonName, addon = ...
 local Frame = {}
 
-local defaultConfig = {
-    width = 180,
-    height = 105,
-    bgColor = {0, 0, 0, 0.8},
-    borderColor = {0.5, 0.5, 0.5, 0.8},
-    titleBgColor = {0.2, 0.2, 0.2, 0.9},
-    titleTextColor = {1, 0.82, 0},
-    titleHeight = 20,
-    padding = 8,
-    strata = "LOW",  -- HIGH, MEDIUM, LOW, BACKGROUND
-    level = 1
-}
-
 -- Création d'une nouvelle frame
 function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, config)
     local frame = CreateFrame("Frame", name, UIParent)
-    local settings = config or defaultConfig
+    local settings = config or addon.Config.FRAME
     
     -- Configuration de base
     frame:SetSize(settings.width, settings.height)
@@ -44,6 +31,47 @@ function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, c
         if self.OnMove then
             local point, _, relativePoint, xOfs, yOfs = self:GetPoint()
             self:OnMove(point, relativePoint, xOfs, yOfs)
+        end
+    end)
+    
+
+    -- Ajout du redimensionnement
+    frame:SetResizable(true)
+    -- Création des poignées de redimensionnement
+    local resizeButton = CreateFrame("Button", nil, frame)
+    resizeButton:SetPoint("BOTTOMRIGHT", 0, 0)
+    resizeButton:SetSize(16, 16)
+    resizeButton:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    resizeButton:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    resizeButton:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    
+    resizeButton:SetScript("OnMouseDown", function(self, button)
+        if button == "LeftButton" and not frame.isLocked then
+            frame:StartSizing("BOTTOMRIGHT")
+        end
+    end)
+    
+    resizeButton:SetScript("OnMouseUp", function(self, button)
+      if button == "LeftButton" then
+          frame:StopMovingOrSizing()
+          -- Vérification de la taille minimale
+          local width, height = frame:GetSize()
+          if width < settings.minWidth then width = settings.minWidth end
+          if height < settings.minHeight then height = settings.minHeight end
+          frame:SetSize(width, height)
+          
+          if frame.OnResize then
+              frame:OnResize(width, height)
+          end
+      end
+    end) 
+    
+    -- Ajout d'un script pour vérifier la taille pendant le redimensionnement
+    frame:SetScript("OnSizeChanged", function(self, width, height)
+        if width < settings.minWidth then width = settings.minWidth end
+        if height < settings.minHeight then height = settings.minHeight end
+        if width ~= self:GetWidth() or height ~= self:GetHeight() then
+            self:SetSize(width, height)
         end
     end)
     
@@ -112,11 +140,7 @@ function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, c
     end)
     
     lockButton:SetScript("OnClick", function()
-        frame.isLocked = not frame.isLocked
-        lockText:SetText(frame.isLocked and "-" or "_")
-        if frame.OnLock then
-            frame:OnLock(frame.isLocked)
-        end
+        frame:SetLocked(not frame.isLocked)
     end)
     
     -- Bouton de fermeture
@@ -167,12 +191,36 @@ function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, c
     function frame:SetLocked(locked)
         self.isLocked = locked
         lockText:SetText(self.isLocked and "-" or "_")
+        -- Gestion de la visibilité du bouton de redimensionnement
+        if locked or not settings.canResize then
+          resizeButton:Hide()
+        else
+          resizeButton:Show()
+        end
+        if self.OnLock then
+            self:OnLock(self.isLocked)
+        end
     end
     
     -- Méthode pour changer le z-index
     function frame:SetZIndex(strata, level)
         self:SetFrameStrata(strata or settings.strata)
         self:SetFrameLevel(level or settings.level)
+    end
+    
+    -- Méthode pour sauvegarder la taille
+    function frame:SaveSize()
+        local width, height = self:GetSize()
+        if self.OnSaveSize then
+            self:OnSaveSize(width, height)
+        end
+    end
+    
+    -- Méthode pour restaurer la taille
+    function frame:RestoreSize()
+        if defaultConfig.width and defaultConfig.height then
+            self:SetSize(defaultConfig.width, defaultConfig.height)
+        end
     end
     
     return frame

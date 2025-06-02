@@ -17,6 +17,23 @@ local Config = {
         }
     },
 
+    -- Configuration de la frame
+    FRAME = {
+        width = 180,
+        height = 105,
+        bgColor = {0, 0, 0, 0.8},
+        borderColor = {0.5, 0.5, 0.5, 0.8},
+        titleBgColor = {0.2, 0.2, 0.2, 0.9},
+        titleTextColor = {1, 0.82, 0},
+        titleHeight = 20,
+        padding = 8,
+        strata = "LOW",  -- HIGH, MEDIUM, LOW, BACKGROUND
+        level = 1,
+        minWidth = 130,
+        minHeight = 105,
+        canResize = false
+    },
+
     -- Commandes slash
     SLASH_COMMAND = "ghonor",
     
