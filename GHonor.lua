@@ -55,7 +55,7 @@ function GHonor:CreateMainFrame()
     -- Configuration du callback de fermeture
     HonorFrame.OnClose = function(self)
         GHonorDB.showOutsideBG = false
-        if not isInBattleground then
+        if not isInBattleground and not Config.DEBUG.enabled then
             self:Hide()
         end
     end
@@ -125,10 +125,40 @@ function GHonor:CreateSlashCommands()
         elseif msg == "debug" then
             Config.DEBUG.enabled = not Config.DEBUG.enabled
             print(Config.COLORS.ADDON_PREFIX .. (Config.DEBUG.enabled and _(Config.MESSAGES.DEBUG_ENABLED) or _(Config.MESSAGES.DEBUG_DISABLED)))
+        elseif msg:find("^test ") then
+            local testType = msg:match("^test (.+)$")
+            local testHonorMessage = Config.PATTERNS.HONOR_KILL .. " 12"
+            local testObjectiveMessage = " 12"
+            if testType == "honor" then
+                -- Simulation d'un gain d'honneur par kill
+                print(Config.COLORS.ADDON_PREFIX .. "Simulate a kill")
+                GHonor:ProcessHonorMessage(testHonorMessage)
+            elseif testType == "objective" then
+                -- Simulation d'un gain d'honneur par objectif
+                print(Config.COLORS.ADDON_PREFIX .. "Simulate a objective")
+                GHonor:ProcessHonorMessage(testObjectiveMessage)
+            elseif testType == "loop" then
+                -- Simulation d'une boucle de gains d'honneur
+                print(Config.COLORS.ADDON_PREFIX .. "Start simulate")
+                local count = 0
+                local function simulateHonorGain()
+                    if count < 10 then
+                        print(Config.COLORS.ADDON_PREFIX .. "Simulate a kill")
+                        GHonor:ProcessHonorMessage(testHonorMessage)
+                        count = count + 1
+                        C_Timer.After(1, simulateHonorGain)
+                    else
+                        print(Config.COLORS.ADDON_PREFIX .. "Simulation terminée")
+                    end
+                end
+                simulateHonorGain()
+            end
         else
             print(Config.COLORS.ADDON_PREFIX .. _(Config.MESSAGES.AVAILABLE_COMMANDS) .. ":|r")
             print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "show", _("Toggle window visibility")))
             print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "reset", _(Config.MESSAGES.RESET_WINDOW)))
+            print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "debug", _("Toggle debug mode")))
+            print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "test", _("Test commands")))
         end
     end
 end
@@ -166,31 +196,12 @@ function GHonor:OnEvent(event, ...)
     elseif event == "CHAT_MSG_COMBAT_HONOR_GAIN" then
         local text = ...
         self:ProcessHonorMessage(text)
-    elseif event == "PLAYER_PVP_KILLS_CHANGED" then
-        self:UpdateKillCount()
-    elseif event == "COMBAT_TEXT_UPDATE" then
-        local combatTextType = ...
-        if combatTextType == "HONOR_GAINED" then
-            local amount = select(2, ...)
-            self:ProcessHonorGain(amount)
-        end
-    end
-end
-
--- Traitement des gains d'honneur
-function GHonor:ProcessHonorGain(amount)
-    if not isInBattleground then return end
-    
-    -- Mise à jour de l'honneur total
-    if amount and amount > 0 then
-        currentBGHonor = currentBGHonor + amount
-        self:UpdateDisplay()
     end
 end
 
 -- Traitement des messages d'honneur
 function GHonor:ProcessHonorMessage(text)
-    if not isInBattleground then return end
+    if not isInBattleground and not Config.DEBUG.enabled then return end
     
     Config:Debug("HONOR_MESSAGE", "Processing message:", text)
     
@@ -215,33 +226,9 @@ function GHonor:ProcessHonorMessage(text)
     self:UpdateDisplay()
 end
 
--- Mise à jour du nombre de kills
-function GHonor:UpdateKillCount()
-    if not isInBattleground then 
-        Config:Debug("UPDATE_KILL_COUNT", "Not in battleground, skipping update")
-        return 
-    end
-    
-    -- Récupération du nombre de kills dans le champ de bataille
-    local numScores = GetNumBattlefieldScores()
-    Config:Debug("UPDATE_KILL_COUNT", "Number of scores:", numScores)
-    
-    for i = 1, numScores do
-        local name, kb, hk = GetBattlefieldScore(i)
-        if name == UnitName("player") then
-            Config:Debug("UPDATE_KILL_COUNT", "Found player stats - Name:", name, "KB:", kb, "HK:", hk)
-            honorableKills = hk
-            break
-        end
-    end
-    
-    Config:Debug("UPDATE_KILL_COUNT", "Updated honorable kills to:", honorableKills)
-    self:UpdateDisplay()
-end
-
 -- Mise à jour des statistiques du champ de bataille
 function GHonor:UpdateBattlefieldStats()
-    if not isInBattleground then 
+    if not isInBattleground and not Config.DEBUG.enabled then 
         Config:Debug("UPDATE_BATTLEFIELD_STATS", "Not in battleground, skipping update")
         return 
     end
@@ -257,6 +244,7 @@ function GHonor:UpdateBattlefieldStats()
             if honorGained and honorGained > 0 then
                 Config:Debug("UPDATE_BATTLEFIELD_STATS", "Updating current BG honor from", currentBGHonor, "to", honorGained)
                 currentBGHonor = honorGained
+                honorFromObjectives = honorGained
             end
             self:UpdateDisplay()
             break
