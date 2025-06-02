@@ -1,8 +1,7 @@
 # GHonor
 
 A World of Warcraft Classic addon that provides accurate honor tracking during battlegrounds.
-
-![image](https://github.com/user-attachments/assets/fedc6f3c-e0b8-4f0d-ae90-9765e6a1571a)
+![GHonor_screen1](https://github.com/user-attachments/assets/dea84bb3-2013-4965-a040-41409480994a)
 
 ## The Problem
 
