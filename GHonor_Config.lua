@@ -11,9 +11,7 @@ local Config = {
             PLAYER_ENTERING_WORLD = true,
             UPDATE_BATTLEFIELD_SCORE = true,
             ZONE_CHANGED_NEW_AREA = true,
-            CHAT_MSG_COMBAT_HONOR_GAIN = true,
-            PLAYER_PVP_KILLS_CHANGED = true,
-            COMBAT_TEXT_UPDATE = true
+            CHAT_MSG_COMBAT_HONOR_GAIN = true
         }
     },
 
