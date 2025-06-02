@@ -12,22 +12,22 @@ local currentBGHonor = 0
 -- Raccourci pour la fonction de traduction
 local _ = GHonor_
 
+-- Raccourci pour la configuration
+local Config = addon.Config
+
 -- Configuration par défaut
 local defaults = {
     point = "CENTER",
     relativePoint = "CENTER",
     xOfs = 0,
     yOfs = 0,
-    showOutsideBG = false
+    showOutsideBG = false,
+    isLocked = false
 }
 
 -- Initialisation de l'addon
 function GHonor:Init()
-    -- Initialisation des variables sauvegardées
-    if not GHonorDB then
-        GHonorDB = defaults
-    end
-
+    self:RegisterEvent("ADDON_LOADED")
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("UPDATE_BATTLEFIELD_SCORE")
     self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
@@ -35,140 +35,62 @@ function GHonor:Init()
     self:RegisterEvent("PLAYER_PVP_KILLS_CHANGED")
     self:RegisterEvent("COMBAT_TEXT_UPDATE")
     self:SetScript("OnEvent", self.OnEvent)
-    
-    -- Création de la fenêtre principale
-    self:CreateMainFrame()
-    
-    -- Création des commandes slash
-    self:CreateSlashCommands()
 end
 
 -- Création de la fenêtre principale
 function GHonor:CreateMainFrame()
     if HonorFrame then return end
     
-    -- Création du cadre principal
-    HonorFrame = CreateFrame("Frame", "GHonorMainFrame", UIParent)
-    HonorFrame:SetSize(180, 105)  -- Hauteur augmentée pour la nouvelle ligne
-    HonorFrame:SetPoint(GHonorDB.point, UIParent, GHonorDB.relativePoint, GHonorDB.xOfs, GHonorDB.yOfs)
-    HonorFrame:SetMovable(true)
-    HonorFrame:EnableMouse(true)
-    HonorFrame:RegisterForDrag("LeftButton")
-    HonorFrame:SetScript("OnDragStart", HonorFrame.StartMoving)
-    HonorFrame:SetScript("OnDragStop", function()
-        HonorFrame:StopMovingOrSizing()
-        -- Sauvegarder la position
-        local point, _, relativePoint, xOfs, yOfs = HonorFrame:GetPoint()
+    -- Création de la frame avec la nouvelle classe
+    HonorFrame = addon.Frame:Create(_("GHonor"), "GHonorMainFrame", GHonorDB.point, GHonorDB.relativePoint, GHonorDB.xOfs, GHonorDB.yOfs, GHonorDB.isLocked)
+    
+    -- Configuration du callback de déplacement
+    HonorFrame.OnMove = function(self, point, relativePoint, xOfs, yOfs)
         GHonorDB.point = point
         GHonorDB.relativePoint = relativePoint
         GHonorDB.xOfs = xOfs
         GHonorDB.yOfs = yOfs
-    end)
+    end
     
-    -- Fond principal
-    local bg = HonorFrame:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0, 0, 0, 0.8)
-    
-    -- Bordure supérieure
-    local topBorder = HonorFrame:CreateTexture(nil, "BORDER")
-    topBorder:SetPoint("TOPLEFT", 0, 0)
-    topBorder:SetPoint("TOPRIGHT", 0, 0)
-    topBorder:SetHeight(2)
-    topBorder:SetColorTexture(0.5, 0.5, 0.5, 0.8)
-    
-    -- Bordure inférieure
-    local bottomBorder = HonorFrame:CreateTexture(nil, "BORDER")
-    bottomBorder:SetPoint("BOTTOMLEFT", 0, 0)
-    bottomBorder:SetPoint("BOTTOMRIGHT", 0, 0)
-    bottomBorder:SetHeight(2)
-    bottomBorder:SetColorTexture(0.5, 0.5, 0.5, 0.8)
-    
-    -- Bordure gauche
-    local leftBorder = HonorFrame:CreateTexture(nil, "BORDER")
-    leftBorder:SetPoint("TOPLEFT", 0, 0)
-    leftBorder:SetPoint("BOTTOMLEFT", 0, 0)
-    leftBorder:SetWidth(2)
-    leftBorder:SetColorTexture(0.5, 0.5, 0.5, 0.8)
-    
-    -- Bordure droite
-    local rightBorder = HonorFrame:CreateTexture(nil, "BORDER")
-    rightBorder:SetPoint("TOPRIGHT", 0, 0)
-    rightBorder:SetPoint("BOTTOMRIGHT", 0, 0)
-    rightBorder:SetWidth(2)
-    rightBorder:SetColorTexture(0.5, 0.5, 0.5, 0.8)
-    
-    -- Titre
-    local titleBg = HonorFrame:CreateTexture(nil, "BACKGROUND", nil, 1)
-    titleBg:SetPoint("TOPLEFT", 2, -2)
-    titleBg:SetPoint("TOPRIGHT", -2, -2)
-    titleBg:SetHeight(20)
-    titleBg:SetColorTexture(0.2, 0.2, 0.2, 0.9)
-    
-    HonorFrame.title = HonorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    HonorFrame.title:SetPoint("CENTER", titleBg, "CENTER", 0, 0)
-    HonorFrame.title:SetText(_("GHonor"))
-    HonorFrame.title:SetTextColor(1, 0.82, 0)  -- Couleur dorée
-    
-    -- Conteneur pour les statistiques
-    local statsContainer = CreateFrame("Frame", nil, HonorFrame)
-    statsContainer:SetPoint("TOPLEFT", 8, -32)
-    statsContainer:SetPoint("BOTTOMRIGHT", -8, 8)
-    
-    -- Textes d'information
-    HonorFrame.hkText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    HonorFrame.hkText:SetPoint("TOPLEFT", 0, 0)
-    HonorFrame.hkText:SetJustifyH("LEFT")
-    HonorFrame.hkText:SetText(_("HK Count") .. ": 0")
-    
-    HonorFrame.honorKillsText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    HonorFrame.honorKillsText:SetPoint("TOPLEFT", HonorFrame.hkText, "BOTTOMLEFT", 0, -4)
-    HonorFrame.honorKillsText:SetJustifyH("LEFT")
-    HonorFrame.honorKillsText:SetText(_("HK Honor") .. ": 0")
-    
-    HonorFrame.honorObjectivesText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    HonorFrame.honorObjectivesText:SetPoint("TOPLEFT", HonorFrame.honorKillsText, "BOTTOMLEFT", 0, -4)
-    HonorFrame.honorObjectivesText:SetJustifyH("LEFT")
-    HonorFrame.honorObjectivesText:SetText(_("Objective Honor") .. ": 0")
-    
-    HonorFrame.totalHonorText = statsContainer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    HonorFrame.totalHonorText:SetPoint("TOPLEFT", HonorFrame.honorObjectivesText, "BOTTOMLEFT", 0, -4)
-    HonorFrame.totalHonorText:SetJustifyH("LEFT")
-    HonorFrame.totalHonorText:SetText(_("Total") .. ": 0")
-    
-    -- Bouton de fermeture
-    local closeButton = CreateFrame("Button", nil, HonorFrame)
-    closeButton:SetSize(16, 16)
-    closeButton:SetPoint("TOPRIGHT", -4, -4)
-    
-    -- Texte de la croix
-    local closeText = closeButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    closeText:SetPoint("CENTER", 0, 0)
-    closeText:SetText("×")
-    closeText:SetTextColor(0.7, 0.7, 0.7)
-    
-    closeButton:SetScript("OnEnter", function()
-        closeText:SetTextColor(1, 1, 1)
-    end)
-    
-    closeButton:SetScript("OnLeave", function()
-        closeText:SetTextColor(0.7, 0.7, 0.7)
-    end)
-    
-    closeButton:SetScript("OnMouseDown", function()
-        closeText:SetPoint("CENTER", 1, -1)
-    end)
-    
-    closeButton:SetScript("OnMouseUp", function()
-        closeText:SetPoint("CENTER", 0, 0)
-    end)
-    
-    closeButton:SetScript("OnClick", function()
+    -- Configuration du callback de fermeture
+    HonorFrame.OnClose = function(self)
         GHonorDB.showOutsideBG = false
         if not isInBattleground then
-            HonorFrame:Hide()
+            self:Hide()
         end
-    end)
+    end
+    
+    -- Configuration du callback de verrouillage
+    HonorFrame.OnLock = function(self, isLocked)
+        GHonorDB.isLocked = isLocked
+    end
+    
+    -- Application de l'état de verrouillage sauvegardé
+    HonorFrame:SetLocked(GHonorDB.isLocked)
+    
+    -- Ajout des textes
+    HonorFrame.hkText = HonorFrame:AddText(_("HK Count") .. ": 0")
+    
+    HonorFrame.honorKillsText = HonorFrame:AddText(_("HK Honor") .. ": 0", {
+        relativeTo = HonorFrame.hkText,
+        point = "TOPLEFT",
+        relativePoint = "BOTTOMLEFT",
+        yOfs = -4
+    })
+    
+    HonorFrame.honorObjectivesText = HonorFrame:AddText(_("Objective Honor") .. ": 0", {
+        relativeTo = HonorFrame.honorKillsText,
+        point = "TOPLEFT",
+        relativePoint = "BOTTOMLEFT",
+        yOfs = -4
+    })
+    
+    HonorFrame.totalHonorText = HonorFrame:AddText(_("Total") .. ": 0", {
+        relativeTo = HonorFrame.honorObjectivesText,
+        point = "TOPLEFT",
+        relativePoint = "BOTTOMLEFT",
+        yOfs = -4
+    })
     
     if not GHonorDB.showOutsideBG then
         HonorFrame:Hide()
@@ -177,39 +99,65 @@ end
 
 -- Création des commandes slash
 function GHonor:CreateSlashCommands()
-    SLASH_GHONOR1 = "/ghonor"
+    SLASH_GHONOR1 = "/" .. Config.SLASH_COMMAND
     SlashCmdList["GHONOR"] = function(msg)
         msg = msg:lower()
+        Config:Debug("SLASH_COMMAND", "Received command:", msg)
         if msg == "show" then
-            GHonorDB.showOutsideBG = true
-            HonorFrame:Show()
-            print("|cFF00FF00GHonor:|r " .. _("Window shown"))
-        elseif msg == "hide" then
-            GHonorDB.showOutsideBG = false
-            if not isInBattleground then
-                HonorFrame:Hide()
+            GHonorDB.showOutsideBG = not GHonorDB.showOutsideBG
+            if GHonorDB.showOutsideBG then
+                HonorFrame:Show()
+                print(Config.COLORS.ADDON_PREFIX .. _(Config.MESSAGES.WINDOW_SHOWN))
+            else
+                if not isInBattleground then
+                    HonorFrame:Hide()
+                end
+                print(Config.COLORS.ADDON_PREFIX .. _(Config.MESSAGES.WINDOW_HIDDEN))
             end
-            print("|cFF00FF00GHonor:|r " .. _("Window hidden outside battleground"))
         elseif msg == "reset" then
-            GHonorDB.point = defaults.point
-            GHonorDB.relativePoint = defaults.relativePoint
-            GHonorDB.xOfs = defaults.xOfs
-            GHonorDB.yOfs = defaults.yOfs
+            GHonorDB.point = Config.DEFAULTS.point
+            GHonorDB.relativePoint = Config.DEFAULTS.relativePoint
+            GHonorDB.xOfs = Config.DEFAULTS.xOfs
+            GHonorDB.yOfs = Config.DEFAULTS.yOfs
             HonorFrame:ClearAllPoints()
             HonorFrame:SetPoint(GHonorDB.point, UIParent, GHonorDB.relativePoint, GHonorDB.xOfs, GHonorDB.yOfs)
-            print("|cFF00FF00GHonor:|r " .. _("Position reset"))
+            print(Config.COLORS.ADDON_PREFIX .. _(Config.MESSAGES.POSITION_RESET))
+        elseif msg == "debug" then
+            Config.DEBUG.enabled = not Config.DEBUG.enabled
+            print(Config.COLORS.ADDON_PREFIX .. (Config.DEBUG.enabled and _(Config.MESSAGES.DEBUG_ENABLED) or _(Config.MESSAGES.DEBUG_DISABLED)))
         else
-            print("|cFF00FF00GHonor - " .. _("Available commands") .. ":|r")
-            print("  /ghonor show - " .. _("Show window"))
-            print("  /ghonor hide - " .. _("Hide window outside battleground"))
-            print("  /ghonor reset - " .. _("Reset window position"))
+            print(Config.COLORS.ADDON_PREFIX .. _(Config.MESSAGES.AVAILABLE_COMMANDS) .. ":|r")
+            print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "show", _("Toggle window visibility")))
+            print(string.format("  /%s %s - %s", Config.SLASH_COMMAND, "reset", _(Config.MESSAGES.RESET_WINDOW)))
         end
     end
 end
 
 -- Gestion des événements
 function GHonor:OnEvent(event, ...)
-    if event == "PLAYER_ENTERING_WORLD" then
+    Config:Debug(event, ...)
+    
+    if event == "ADDON_LOADED" and ... == "GHonor" then
+        -- Initialisation des variables sauvegardées
+        if not GHonorDB then
+            GHonorDB = Config.DEFAULTS
+            Config:Debug("INIT", "Created new GHonorDB with defaults")
+        else
+            -- Mise à jour des valeurs par défaut si nécessaire
+            for key, value in pairs(Config.DEFAULTS) do
+                if GHonorDB[key] == nil then
+                    GHonorDB[key] = value
+                    Config:Debug("INIT", "Added default value for", key, value)
+                end
+            end
+        end
+        
+        -- Création de la fenêtre principale
+        self:CreateMainFrame()
+        
+        -- Création des commandes slash
+        self:CreateSlashCommands()
+    elseif event == "PLAYER_ENTERING_WORLD" then
         self:CheckBattleground()
     elseif event == "UPDATE_BATTLEFIELD_SCORE" then
         self:UpdateBattlefieldStats()
@@ -244,18 +192,22 @@ end
 function GHonor:ProcessHonorMessage(text)
     if not isInBattleground then return end
     
+    Config:Debug("HONOR_MESSAGE", "Processing message:", text)
+    
     -- Analyse du message pour déterminer si c'est un kill ou un objectif
-    if text:find(":") then
+    if text:find(Config.PATTERNS.HONOR_KILL) then
         -- C'est un kill honorable
         local honor = tonumber(text:match("(%d+)"))
         if honor then
             honorFromKills = honorFromKills + honor
+            Config:Debug("HONOR_MESSAGE", "Added honor from kill:", honor, "Total:", honorFromKills)
         end
     else
         -- C'est probablement un objectif
         local honor = tonumber(text:match("(%d+)"))
         if honor then
             honorFromObjectives = honorFromObjectives + honor
+            Config:Debug("HONOR_MESSAGE", "Added honor from objective:", honor, "Total:", honorFromObjectives)
         end
     end
     
@@ -264,37 +216,53 @@ end
 
 -- Mise à jour du nombre de kills
 function GHonor:UpdateKillCount()
-    if not isInBattleground then return end
+    if not isInBattleground then 
+        Config:Debug("UPDATE_KILL_COUNT", "Not in battleground, skipping update")
+        return 
+    end
     
     -- Récupération du nombre de kills dans le champ de bataille
     local numScores = GetNumBattlefieldScores()
+    Config:Debug("UPDATE_KILL_COUNT", "Number of scores:", numScores)
+    
     for i = 1, numScores do
         local name, kb, hk = GetBattlefieldScore(i)
         if name == UnitName("player") then
+            Config:Debug("UPDATE_KILL_COUNT", "Found player stats - Name:", name, "KB:", kb, "HK:", hk)
             honorableKills = hk
             break
         end
     end
     
+    Config:Debug("UPDATE_KILL_COUNT", "Updated honorable kills to:", honorableKills)
     self:UpdateDisplay()
 end
 
 -- Mise à jour des statistiques du champ de bataille
 function GHonor:UpdateBattlefieldStats()
-    if not isInBattleground then return end
+    if not isInBattleground then 
+        Config:Debug("UPDATE_BATTLEFIELD_STATS", "Not in battleground, skipping update")
+        return 
+    end
     
     local numScores = GetNumBattlefieldScores()
+    Config:Debug("UPDATE_BATTLEFIELD_STATS", "Number of scores:", numScores)
+    
     for i = 1, numScores do
         local name, kb, hk, deaths, honorGained = GetBattlefieldScore(i)
         if name == UnitName("player") then
+            Config:Debug("UPDATE_BATTLEFIELD_STATS", "Found player stats - Name:", name, "KB:", kb, "HK:", hk, "Deaths:", deaths, "Honor:", honorGained)
             honorableKills = hk
             if honorGained and honorGained > 0 then
+                Config:Debug("UPDATE_BATTLEFIELD_STATS", "Updating current BG honor from", currentBGHonor, "to", honorGained)
                 currentBGHonor = honorGained
             end
             self:UpdateDisplay()
             break
         end
     end
+    
+    Config:Debug("UPDATE_BATTLEFIELD_STATS", "Final stats - HK:", honorableKills, "Current BG Honor:", currentBGHonor)
 end
 
 -- Vérification si le joueur est dans un champ de bataille
@@ -302,6 +270,8 @@ function GHonor:CheckBattleground()
     local inInstance, instanceType = IsInInstance()
     local wasInBG = isInBattleground
     isInBattleground = (inInstance and instanceType == "pvp")
+    
+    Config:Debug("BATTLEGROUND", "inInstance:", inInstance, "instanceType:", instanceType, "isInBattleground:", isInBattleground)
     
     if isInBattleground and not wasInBG then
         -- Reset des compteurs pour le nouveau BG
@@ -311,8 +281,10 @@ function GHonor:CheckBattleground()
         currentBGHonor = 0
         self:UpdateBattlefieldStats()
         HonorFrame:Show()
+        Config:Debug("BATTLEGROUND", "Entered battleground, reset counters")
     elseif not isInBattleground and wasInBG and not GHonorDB.showOutsideBG then
         HonorFrame:Hide()
+        Config:Debug("BATTLEGROUND", "Left battleground, hiding frame")
     end
 end
 
@@ -327,4 +299,4 @@ function GHonor:UpdateDisplay()
 end
 
 -- Initialisation
-GHonor:Init() 
+GHonor:Init()

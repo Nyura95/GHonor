@@ -12,9 +12,9 @@ local L = {
         ["Window hidden outside battleground"] = "Fenêtre masquée hors champ de bataille",
         ["Position reset"] = "Position réinitialisée",
         ["Available commands"] = "Commandes disponibles",
-        ["Show window"] = "Affiche la fenêtre",
-        ["Hide window outside battleground"] = "Masque la fenêtre hors champ de bataille",
-        ["Reset window position"] = "Réinitialise la position de la fenêtre"
+        ["Reset window position"] = "Réinitialise la position de la fenêtre",
+        ["Toggle window visibility"] = "Affiche/Masque la fenêtre",
+        ["Toggle debug mode"] = "Active/Désactive le mode débogage"
     },
     enUS = {
         ["GHonor"] = "GHonor",
@@ -22,13 +22,13 @@ local L = {
         ["HK Honor"] = "HK Honor",
         ["Objective Honor"] = "Objective Honor",
         ["Total"] = "Total",
-        ["Window shown"] = "Window shown",
-        ["Window hidden outside battleground"] = "Window hidden outside battleground",
         ["Position reset"] = "Position reset",
         ["Available commands"] = "Available commands",
         ["Show window"] = "Show window",
         ["Hide window outside battleground"] = "Hide window outside battleground",
-        ["Reset window position"] = "Reset window position"
+        ["Reset window position"] = "Reset window position",
+        ["Toggle window visibility"] = "Toggle window visibility",
+        ["Toggle debug mode"] = "Toggle debug mode"
     }
 }
 
