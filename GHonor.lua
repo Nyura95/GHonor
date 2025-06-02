@@ -200,14 +200,15 @@ function GHonor:ProcessHonorMessage(text)
         local honor = tonumber(text:match("(%d+)"))
         if honor then
             honorFromKills = honorFromKills + honor
-            Config:Debug("HONOR_MESSAGE", "Added honor from kill:", honor, "Total:", honorFromKills)
+            honorableKills = honorableKills + 1
+            Config:Debug("HONOR_MESSAGE", "Added honor from kill:", honor, " HK:", honorableKills, " Total:", honorFromKills)
         end
     else
         -- C'est probablement un objectif
         local honor = tonumber(text:match("(%d+)"))
         if honor then
             honorFromObjectives = honorFromObjectives + honor
-            Config:Debug("HONOR_MESSAGE", "Added honor from objective:", honor, "Total:", honorFromObjectives)
+            Config:Debug("HONOR_MESSAGE", "Added honor from objective:", honor, " Total:", honorFromObjectives)
         end
     end
     
