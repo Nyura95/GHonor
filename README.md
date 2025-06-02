@@ -24,8 +24,7 @@ GHonor provides real-time tracking of all honor sources during battlegrounds:
 
 ## Commands
 
-- `/ghonor show` - Show the window
-- `/ghonor hide` - Hide the window outside battlegrounds
+- `/ghonor show` - Show/Hide the window
 - `/ghonor reset` - Reset window position
 
 ## Installation
