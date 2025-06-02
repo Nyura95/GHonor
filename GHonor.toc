@@ -1,7 +1,7 @@
 ## Interface: 11404
 ## Title: GHonor
 ## Notes: Accurate honor tracking for battlegrounds. Tracks HKs, objective honor, and total honor earned in real-time.
-## Author: Votre nom
+## Author: Genou
 ## Version: 1.0.0
 ## SavedVariables: GHonorDB
 ## X-Category: PvP
@@ -9,5 +9,7 @@
 ## X-Curse-Project-ID: [À remplir après création sur CurseForge]
 ## X-WoWI-ID: [Optionnel]
 
+GHonor_Config.lua
+GHonor_Frame.lua
 GHonor_Localization.lua
 GHonor.lua 
