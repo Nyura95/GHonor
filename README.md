@@ -2,6 +2,8 @@
 
 A World of Warcraft Classic addon that provides accurate honor tracking during battlegrounds.
 
+![image](https://github.com/user-attachments/assets/fedc6f3c-e0b8-4f0d-ae90-9765e6a1571a)
+
 ## The Problem
 
 In World of Warcraft Classic, the end-of-battleground honor display only shows honor gained from objectives. This means that all honorable kills (HKs) and their associated honor gains are not properly accounted for in the final scoreboard, making it difficult to track your true honor earnings.
