@@ -3,7 +3,7 @@ local Frame = {}
 
 -- Création d'une nouvelle frame
 function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, config)
-    local frame = CreateFrame("Frame", name, UIParent)
+    local frame = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
     local settings = config or addon.Config.FRAME
     
     -- Configuration de base
@@ -16,6 +16,26 @@ function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, c
     -- Configuration du z-index
     frame:SetFrameStrata(settings.strata)
     frame:SetFrameLevel(settings.level)
+
+    -- Style 
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        tile = false,
+        tileSize = 0,
+        edgeSize = 1,
+        insets = { left = 0, right = 0, top = 0, bottom = 0 },
+    })
+    frame:SetBackdropColor(0.15, 0.12, 0.1, 0.35)
+    frame:SetBackdropBorderColor(0, 0, 0, 0.8)
+
+    -- Suppression des textures de bordure par défaut
+    local regions = {frame:GetRegions()}
+    for _, region in ipairs(regions) do
+        if region:IsObjectType("Texture") then
+            region:SetTexture(nil)
+        end
+    end
     
     -- État de verrouillage
     frame.isLocked = isLocked or false
@@ -33,8 +53,46 @@ function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, c
             self:OnMove(point, relativePoint, xOfs, yOfs)
         end
     end)
-    
 
+    -- Titre
+    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    frame.title:SetPoint("TOP", frame, "TOP", 0, -6)
+    frame.title:SetText(title)
+    frame.title:SetTextColor(1, 1, 1, 1)
+
+    -- Bouton de fermeture
+    local closeButton = CreateFrame("Button", nil, frame)
+    closeButton:SetSize(16, 16)
+    closeButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4, -4)
+    
+    -- Texture de la croix
+    local closeTexture = closeButton:CreateTexture(nil, "ARTWORK")
+    closeTexture:SetAllPoints()
+    closeTexture:SetTexture("Interface\\Buttons\\UI-StopButton")
+    closeTexture:SetDesaturated(true)
+    closeTexture:SetVertexColor(1, 1, 1, 0.8)
+    
+    closeButton:SetScript("OnEnter", function()
+        closeTexture:SetVertexColor(1, 1, 1, 1)
+    end)
+    
+    closeButton:SetScript("OnLeave", function()
+        closeTexture:SetVertexColor(1, 1, 1, 0.8)
+    end)
+    
+    closeButton:SetScript("OnClick", function()
+        if frame.OnClose then
+            frame:OnClose()
+        else
+            frame:Hide()
+        end
+    end)
+    
+    -- Zone de contenu simple sans fond
+    frame.content = CreateFrame("Frame", nil, frame)
+    frame.content:SetPoint("TOPLEFT", 8, -24)
+    frame.content:SetPoint("BOTTOMRIGHT", -8, 8)
+    
     -- Ajout du redimensionnement
     frame:SetResizable(true)
     -- Création des poignées de redimensionnement
@@ -80,43 +138,6 @@ function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, c
     bg:SetAllPoints()
     bg:SetColorTexture(unpack(settings.bgColor))
     
-    -- Bordures
-    local borders = {
-        {point = "TOPLEFT", point2 = "TOPRIGHT", height = 2},
-        {point = "BOTTOMLEFT", point2 = "BOTTOMRIGHT", height = 2},
-        {point = "TOPLEFT", point2 = "BOTTOMLEFT", width = 2},
-        {point = "TOPRIGHT", point2 = "BOTTOMRIGHT", width = 2}
-    }
-    
-    for _, border in ipairs(borders) do
-        local borderFrame = frame:CreateTexture(nil, "BORDER")
-        borderFrame:SetPoint(border.point, 0, 0)
-        borderFrame:SetPoint(border.point2, 0, 0)
-        if border.height then
-            borderFrame:SetHeight(border.height)
-        else
-            borderFrame:SetWidth(border.width)
-        end
-        borderFrame:SetColorTexture(unpack(settings.borderColor))
-    end
-    
-    -- Titre
-    local titleBg = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
-    titleBg:SetPoint("TOPLEFT", 2, -2)
-    titleBg:SetPoint("TOPRIGHT", -2, -2)
-    titleBg:SetHeight(settings.titleHeight)
-    titleBg:SetColorTexture(unpack(settings.titleBgColor))
-    
-    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    frame.title:SetPoint("CENTER", titleBg, "CENTER", 0, 0)
-    frame.title:SetText(title)
-    frame.title:SetTextColor(unpack(settings.titleTextColor))
-    
-    -- Conteneur pour le contenu
-    frame.content = CreateFrame("Frame", nil, frame)
-    frame.content:SetPoint("TOPLEFT", settings.padding, -(settings.titleHeight + settings.padding))
-    frame.content:SetPoint("BOTTOMRIGHT", -settings.padding, settings.padding)
-    
     -- Bouton de verrouillage
     local lockButton = CreateFrame("Button", nil, frame)
     lockButton:SetSize(16, 16)
@@ -141,40 +162,6 @@ function Frame:Create(title, name, point, relativePoint, xOfs, yOfs, isLocked, c
     
     lockButton:SetScript("OnClick", function()
         frame:SetLocked(not frame.isLocked)
-    end)
-    
-    -- Bouton de fermeture
-    local closeButton = CreateFrame("Button", nil, frame)
-    closeButton:SetSize(16, 16)
-    closeButton:SetPoint("TOPRIGHT", -4, -4)
-    
-    local closeText = closeButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    closeText:SetPoint("CENTER", 0, 0)
-    closeText:SetText("×")
-    closeText:SetTextColor(0.7, 0.7, 0.7)
-    
-    closeButton:SetScript("OnEnter", function()
-        closeText:SetTextColor(1, 1, 1)
-    end)
-    
-    closeButton:SetScript("OnLeave", function()
-        closeText:SetTextColor(0.7, 0.7, 0.7)
-    end)
-    
-    closeButton:SetScript("OnMouseDown", function()
-        closeText:SetPoint("CENTER", 1, -1)
-    end)
-    
-    closeButton:SetScript("OnMouseUp", function()
-        closeText:SetPoint("CENTER", 0, 0)
-    end)
-    
-    closeButton:SetScript("OnClick", function()
-        if frame.OnClose then
-            frame:OnClose()
-        else
-            frame:Hide()
-        end
     end)
     
     -- Méthodes pour ajouter du texte
