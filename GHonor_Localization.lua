@@ -29,7 +29,21 @@ local L = {
         ["Reset window position"] = "Reset window position",
         ["Toggle window visibility"] = "Toggle window visibility",
         ["Toggle debug mode"] = "Toggle debug mode"
-    }
+    },
+    ruRU = {
+        ["GHonor"] = "GHonor",
+        ["HK Count"] = "Количество убийств",
+        ["HK Honor"] = "Честь за убийства",
+        ["Objective Honor"] = "Честь за цели",
+        ["Total"] = "Итого",
+        ["Position reset"] = "Сброс позиции",
+        ["Available commands"] = "Доступные команды",
+        ["Show window"] = "Показать окно",
+        ["Hide window outside battleground"] = "Скрыть окно вне поля боя",
+        ["Reset window position"] = "Сбросить позицию окна",
+        ["Toggle window visibility"] = "Переключить видимость окна",
+        ["Toggle debug mode"] = "Переключить режим отладки"
+    }     
 }
 
 -- Fonction de traduction
